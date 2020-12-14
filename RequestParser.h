@@ -8,12 +8,9 @@
 #include "InverterDataExtractor.h"
 class RequestParser
 {
-  private:
-    InverterDataExtractor *extractor;
-
   public:
-    std::string parseRequest(int8_t *buffer, size_t buffSize);
-    RequestParser(InverterDataExtractor *extr);
+    static std::string parseRequest(int8_t *buffer, size_t buffSize);
+    static InverterDataExtractor *extractor;
 };
 
 #endif //SOLARSERVER_REQUESTPARSER_H

@@ -9,11 +9,7 @@
 
 std::string RequestParser::parseRequest(int8_t *buffer, size_t buffSize)
 {
-    auto info = extractor->getGeneralInfo();
+    auto info = RequestParser::extractor->getGeneralInfo();
 
     return std::string("HTTP/1.1 200 OK\n\n") + "Napatie na baterke: " + std::to_string(info->batteryVoltage) + "V Zatazenie menica: " + std::to_string(info->outputLoadPercent) + "%";
-}
-RequestParser::RequestParser(InverterDataExtractor *extr)
-{
-    this->extractor = extr;
 }

@@ -116,8 +116,7 @@ void *ServerInstance::startProcessing(void *arg)
         return (void *) 1;
     }
 
-    RequestParser parser = RequestParser(data->extractor);
-    std::string response = parser.parseRequest(buffer, result);
+    std::string response = RequestParser::parseRequest(buffer, result);
 
     if (write(sockFD, response.c_str(), response.length()) != response.length()) {
         Logger::log(false, "ServerInstance: Processing", "could not respond, connection closed at clients side");
