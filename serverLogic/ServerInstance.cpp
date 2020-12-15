@@ -7,10 +7,11 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <pthread.h>
-#include "RequestParser.h"
 #include <fcntl.h>
 #include <cerrno>
-#include "InverterDataExtractor.h"
+#include "../inveterExtractor/InverterDataExtractor.h"
+#include "Responder.h"
+#include "RequestParser.h"
 
 struct ThreadData
 {
@@ -82,9 +83,11 @@ int ServerInstance::start(bool *run, InverterDataExtractor &extractor)
         Logger::log(false, "ServerInstance, client connecting", "IP:" + std::string((char *) buff));
         free(clientAddr);
 
-        ThreadData data = { childFD, &extractor };
+        auto *data = new ThreadData{ childFD, &extractor };
 
-        if (pthread_create(&threadIDs[runningThreads], nullptr, ServerInstance::startProcessing, (void *) &data) != 0) {
+        //        ThreadData data = {childFD, &extractor};
+
+        if (pthread_create(&threadIDs[runningThreads], nullptr, ServerInstance::startProcessing, (void *) data) != 0) {
             Logger::log(true, "ServerInstance", "thread creation failed.");
             exit(1);
         }
@@ -105,6 +108,7 @@ void *ServerInstance::startProcessing(void *arg)
 {
     auto data = (ThreadData *) arg;
     auto sockFD = data->sockFD;
+    Responder responder = Responder();
 
     size_t maxRequestSize = 1u << 20u;
     auto *buffer = (int8_t *) calloc(maxRequestSize, sizeof(int8_t));
@@ -116,7 +120,11 @@ void *ServerInstance::startProcessing(void *arg)
         return (void *) 1;
     }
 
-    std::string response = RequestParser::parseRequest(buffer, result);
+    //    printf("BUFFER: %s\n", buffer);
+
+    Request req = RequestParser::parseRequest(buffer);
+    std::string response = responder.respond(req);
+    free(buffer);
 
     if (write(sockFD, response.c_str(), response.length()) != response.length()) {
         Logger::log(false, "ServerInstance: Processing", "could not respond, connection closed at clients side");
@@ -124,6 +132,7 @@ void *ServerInstance::startProcessing(void *arg)
         return (void *) 1;
     }
 
+    delete data;
     close(sockFD);
     return (void *) 0;
 }

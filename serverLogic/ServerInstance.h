@@ -7,9 +7,9 @@
 #include <sys/socket.h>
 
 #include <string>
-#include "Logger.h"
+#include "../Logger/Logger.h"
 #include <cstdint>
-#include "InverterDataExtractor.h"
+#include "../inveterExtractor/InverterDataExtractor.h"
 
 class ServerInstance
 {
