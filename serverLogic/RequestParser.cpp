@@ -30,8 +30,13 @@ Request RequestParser::parseRequest(int8_t *buffer)
     std::string delimiter = " ";
     Request req;
 
-    req.type = "GET";
-    req.path = "/";
+    size_t pos = request.find(delimiter);
+    std::string token = request.substr(0, pos);
+    req.type = token;
+    request = request.erase(0, pos + delimiter.length());
+    pos = request.find(delimiter);
+    token = request.substr(0, pos);
+    req.path = token;
     req.payload = "";
 
     return req;

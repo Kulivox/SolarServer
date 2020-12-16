@@ -12,7 +12,7 @@ class Responder
 {
   private:
     std::string httpOK();
-    std::string mainPage();
+    std::string mainPage(std::string arg);
     std::string GETRequest(Request &request);
     std::string POSTRequest(Request &request);
     void addRow(std::string &fileSoFar, size_t cellN, std::string *rowElement);

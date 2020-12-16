@@ -26,6 +26,8 @@ ServerInstance::ServerInstance(const std::string &address, uint16_t port)
         Logger::log(true, "ServerInstance", "socket creation, exiting");
         exit(1);
     }
+    int enable = 1;
+    setsockopt(this->sockFD, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
 
     auto *serverAddr = (sockaddr_in *) calloc(1, sizeof(sockaddr_in));
     serverAddr->sin_family = AF_INET;
@@ -53,15 +55,14 @@ int ServerInstance::start(bool *run, InverterDataExtractor &extractor)
     uint16_t runningThreads = 0;
     const uint16_t MAX_THREADS = 5;
     pthread_t threadIDs[MAX_THREADS] = { 0 };
+    size_t addrSize = sizeof(sockaddr_in);
 
+    auto *clientAddr = (sockaddr_in *) calloc(1, sizeof(sockaddr_in));
     // run is pointer shared between server thread and UI thread, if user wishes to stop the server, UI thread will change the value of run which will cause this loop to end
     while (true) {
         if (!*run) {
             break;
         }
-
-        auto *clientAddr = (sockaddr_in *) calloc(1, sizeof(sockaddr_in));
-        size_t addrSize = sizeof(sockaddr_in);
 
         // this loop limits the number of concurrently processed requests, it will block until at least one thread ends
         while (runningThreads >= MAX_THREADS) {
@@ -72,16 +73,17 @@ int ServerInstance::start(bool *run, InverterDataExtractor &extractor)
                 }
             }
         }
+        //        Logger::log(false, "Server Instance", "Before connection accept");
         int childFD = accept(sockFD, (struct sockaddr *) clientAddr, (socklen_t *) &addrSize);
 
         if (childFD < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
             continue;
         }
+        //        Logger::log(false, "Server Instance", "Connection accepted");
 
         int8_t buff[INET_ADDRSTRLEN + 1] = { 0 };
         inet_ntop(AF_INET, &(clientAddr->sin_addr), (char *) buff, INET_ADDRSTRLEN);
         Logger::log(false, "ServerInstance, client connecting", "IP:" + std::string((char *) buff));
-        free(clientAddr);
 
         auto *data = new ThreadData{ childFD, &extractor };
 
@@ -98,7 +100,7 @@ int ServerInstance::start(bool *run, InverterDataExtractor &extractor)
     for (unsigned long threadID : threadIDs) {
         pthread_join(threadID, nullptr);
     }
-
+    free(clientAddr);
     close(this->sockFD);
     return 0;
 }

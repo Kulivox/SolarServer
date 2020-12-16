@@ -3,6 +3,7 @@
 #include "UI/UserInterface.h"
 #include "serverLogic/RequestParser.h"
 #include "inveterExtractor/InverterDataExtractor.h"
+#include "File.h"
 
 InverterDataExtractor *RequestParser::extractor;
 
@@ -13,7 +14,7 @@ int main()
 
     RequestParser::extractor = &extractor;
 
-    ServerInstance instance = ServerInstance("192.168.1.20", 8005);
+    ServerInstance instance = ServerInstance("192.168.1.20", 7788);
 
     instance.start(UserInterface::getRunPointer(), extractor);
 

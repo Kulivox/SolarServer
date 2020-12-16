@@ -5,6 +5,8 @@
 #include "Responder.h"
 #include <fstream>
 #include <sstream>
+#include "../File.h"
+#include "Response.h"
 
 std::string Responder::respond(Request &request)
 {
@@ -22,53 +24,63 @@ std::string Responder::POSTRequest(Request &request)
     return std::string();
 }
 
+//int loadFile(char ** buffer, )
+//todo you will need to change return type of this function because image requests wont work otherwise
 std::string Responder::GETRequest(Request &request)
 {
-    std::string mainPageString;
-    if (request.path == "/" || request.path == "index.html") {
-        mainPageString = mainPage();
-    } else if (request.path == "/favicon.ico") {
-        printf("requested favicon");
+    std::string response;
+    if (request.path == "/") {
+        request.path = "../index.html";
     } else {
-        std::ifstream myFile("../error.html");
-        std::stringstream stream;
-        std::string text;
-
-        while (getline(myFile, text)) {
-            stream << text;
-        }
-        mainPageString = stream.str();
+        request.path = ".." + request.path;
     }
 
-    return httpOK() + mainPageString;
+    try {
+        File file = File(request.path);
+
+        if (file.getFileType() == "html" || file.getFileType() == "css") {
+            Response responseObj = Response(HTTP200, "text/" + file.getFileType(), "", "");
+            if (request.path == "../index.html") {
+                responseObj.changeBody(mainPage(file.getFileAsString()));
+                response = responseObj.getStringResponse();
+            } else {
+                responseObj.changeBody(file.getFileAsString());
+                response = responseObj.getStringResponse();
+            }
+
+        } else if (file.getFileType() == "png" || file.getFileType() == "jpg") {
+            Response responseObj = Response(HTTP200, "image/" + file.getFileType(), "", "");
+            response = responseObj.getStringResponse();
+        }
+
+    } catch (FileException &e) {
+        std::string err = "../error.html";
+        File noPage = File(err);
+
+        Response responseObj = Response(HTTP404, "text/html", "", noPage.getFileAsString());
+        response = responseObj.getStringResponse();
+    }
+
+    std::cout << response;
+    return response;
 }
 
-std::string Responder::mainPage()
+std::string Responder::mainPage(std::string text)
 {
     auto info = RequestParser::extractor->getGeneralInfo();
-
-    std::ifstream myFile("../index.html");
-    std::stringstream stream;
-    std::string text;
-
-    while (getline(myFile, text)) {
-        stream << text;
-    }
-
-    text = stream.str();
 
     std::string delimiter = "<table>";
     size_t pos = text.find(delimiter);
 
     std::string table;
-    std::string rowElements1[2] = { "Napätie:", std::to_string(info->batteryVoltage) };
+    std::string rowElements1[2] = { "Napätie:", std::to_string(info->batteryVoltage) + " V" };
     addRow(table, 2, rowElements1);
-    std::string rowElements2[2] = { "Záťaž:", std::to_string(info->acOutputActivePower) + "W" };
+    std::string rowElements2[2] = { "Záťaž:", std::to_string(info->acOutputActivePower) + " W" };
     addRow(table, 2, rowElements2);
     std::string rowElements3[2] = { "Záťaž v percentách:", std::to_string(info->outputLoadPercent) + "%" };
     addRow(table, 2, rowElements3);
 
-    text.insert(pos + delimiter.size(), table);
+    text.insert(pos + delimiter.length(), table);
 
     return text;
 }

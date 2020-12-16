@@ -37,18 +37,16 @@ void *InverterDataExtractor::extractAndSetData(void *arg)
     timespec waitLen = { 10, 0 };
 
     while (true) {
+        Logger::log(false, "DataExtraction", "starting extraction...");
         getState(data->context, InverterDataExtractor::info);
+        Logger::log(false, "DataExtraction", "extraction complete");
+
         DataStorage::storeData(InverterDataExtractor::info);
 
         int resultOfWait = sigtimedwait(&signalSet, nullptr, &waitLen);
 
         if (resultOfWait == SIGALRM || errno == SIGALRM) {
             break;
-        }
-
-        if (errno != EAGAIN) {
-            perror("wtf");
-            exit(1);
         }
     }
 
@@ -58,6 +56,8 @@ InverterDataExtractor::InverterDataExtractor()
 {
     inverterCommContext *context = createContext("/dev/ttyUSB0");
     info = (generalInfo *) calloc(1, sizeof(generalInfo));
+
+    fakeInfo = (generalInfo *) calloc(1, sizeof(generalInfo));
 
     tid = 0;
     auto data = (DataForThread *) calloc(1, sizeof(DataForThread));
@@ -82,4 +82,8 @@ InverterDataExtractor::~InverterDataExtractor()
 pthread_t InverterDataExtractor::getTID()
 {
     return tid;
+}
+generalInfo *InverterDataExtractor::getFakeGeneralInfo()
+{
+    return fakeInfo;
 }

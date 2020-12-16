@@ -5,13 +5,19 @@
 #include <sstream>
 #include <fstream>
 #include "Logger.h"
+#include <chrono>
 
 const std::string path = "file.log";
 
 void Logger::log(bool printToOutput, const std::string &component, const std::string &err)
 {
+    time_t now = time(nullptr);
+    std::string currentTime = std::asctime(std::localtime(&now));
+
+    currentTime = currentTime.erase(currentTime.length() - 1, 1);
+
     std::stringstream stream;
-    stream << component << ": " << err << std::endl;
+    stream << currentTime << "  " << component << ": " << err << std::endl;
 
     if (printToOutput) {
         std::cerr << stream.str();
@@ -20,6 +26,7 @@ void Logger::log(bool printToOutput, const std::string &component, const std::st
     std::ofstream logFile;
     logFile.open(path, std::ofstream::app);
     logFile << stream.str();
+    logFile.flush();
     logFile.close();
 }
 
@@ -36,5 +43,6 @@ void Logger::log(bool printToOutput, const std::string &component, const std::st
     std::ofstream logFile;
     logFile.open(path, std::ofstream::app);
     logFile << stream.str();
+    logFile.flush();
     logFile.close();
 }
