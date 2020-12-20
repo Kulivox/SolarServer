@@ -19,8 +19,6 @@ class RequestParser
   public:
     static Request parseRequest(int8_t *buffer, size_t buffSize);
     static Request parseRequest(int8_t *buffer);
-
-    static InverterDataExtractor *extractor;
 };
 
 #endif //SOLARSERVER_REQUESTPARSER_H

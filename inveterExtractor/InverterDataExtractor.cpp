@@ -14,6 +14,7 @@
 #include <cstring>
 
 generalInfo *InverterDataExtractor::info;
+generalInfo *InverterDataExtractor::fakeInfo;
 
 struct DataForThread
 {
@@ -37,9 +38,9 @@ void *InverterDataExtractor::extractAndSetData(void *arg)
     timespec waitLen = { 10, 0 };
 
     while (true) {
-        Logger::log(false, "DataExtraction", "starting extraction...");
+        //        Logger::log(false, "DataExtraction", "starting extraction...");
         getState(data->context, InverterDataExtractor::info);
-        Logger::log(false, "DataExtraction", "extraction complete");
+        //        Logger::log(false, "DataExtraction", "extraction complete");
 
         DataStorage::storeData(InverterDataExtractor::info);
 
@@ -52,6 +53,34 @@ void *InverterDataExtractor::extractAndSetData(void *arg)
 
     return nullptr;
 }
+
+void *InverterDataExtractor::fakeExtractAndSetData(void *arg)
+{
+    sigset_t signalSet;
+    sigemptyset(&signalSet);
+    sigaddset(&signalSet, SIGALRM);
+    signal(SIGALRM, handler);
+
+    auto data = (DataForThread *) arg;
+    timespec waitLen = { 10, 0 };
+
+    while (true) {
+        //        Logger::log(false, "DataExtraction", "starting extraction...");
+        //        getState(data->context, InverterDataExtractor::info);
+        //        Logger::log(false, "DataExtraction", "extraction complete");
+
+        DataStorage::storeData(InverterDataExtractor::info);
+
+        int resultOfWait = sigtimedwait(&signalSet, nullptr, &waitLen);
+
+        if (resultOfWait == SIGALRM || errno == SIGALRM) {
+            break;
+        }
+    }
+
+    return nullptr;
+}
+
 InverterDataExtractor::InverterDataExtractor()
 {
     inverterCommContext *context = createContext("/dev/ttyUSB0");

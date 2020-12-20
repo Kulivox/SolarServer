@@ -61,24 +61,26 @@ std::string Responder::GETRequest(Request &request)
         response = responseObj.getStringResponse();
     }
 
-    std::cout << response;
+    //    std::cout << response;
     return response;
 }
 
 std::string Responder::mainPage(std::string text)
 {
-    auto info = RequestParser::extractor->getGeneralInfo();
+    auto info = InverterDataExtractor::getGeneralInfo();
 
     std::string delimiter = "<table>";
     size_t pos = text.find(delimiter);
 
     std::string table;
-    std::string rowElements1[2] = { "Napätie:", std::to_string(info->batteryVoltage) + " V" };
-    addRow(table, 2, rowElements1);
-    std::string rowElements2[2] = { "Záťaž:", std::to_string(info->acOutputActivePower) + " W" };
-    addRow(table, 2, rowElements2);
-    std::string rowElements3[2] = { "Záťaž v percentách:", std::to_string(info->outputLoadPercent) + "%" };
-    addRow(table, 2, rowElements3);
+    std::string voltage[2] = { "Napätie:", std::to_string(info->batteryVoltage) + " V" };
+    addRow(table, 2, voltage);
+    std::string acOutputpower[2] = { "Záťaž:", std::to_string(info->acOutputActivePower) + " W" };
+    addRow(table, 2, acOutputpower);
+    std::string outputLoadPercent[2] = { "Záťaž v percentách:", std::to_string(info->outputLoadPercent) + "%" };
+    addRow(table, 2, outputLoadPercent);
+    std::string pvOutputPower[2] = { "Výkon panelov: ", std::to_string(info->pvInputCurrentBattery * info->pvInputVoltage1) };
+    addRow(table, 2, pvOutputPower);
 
     text.insert(pos + delimiter.length(), table);
 

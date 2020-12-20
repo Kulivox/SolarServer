@@ -11,6 +11,11 @@
 #include <cstdint>
 #include "../inveterExtractor/InverterDataExtractor.h"
 
+struct ProgramOptions
+{
+    std::string serverFilesPath;
+};
+
 class ServerInstance
 {
   private:

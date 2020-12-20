@@ -11,14 +11,16 @@ class InverterDataExtractor
 {
   private:
     static void *extractAndSetData(void *);
+    static void *fakeExtractAndSetData(void *arg);
     static const uint8_t SLEEP_LEN_IN_SEC = 10;
     static generalInfo *info;
-    generalInfo *fakeInfo;
+    static generalInfo *fakeInfo;
     pthread_t tid;
 
   public:
-    generalInfo *getGeneralInfo();
-    generalInfo *getFakeGeneralInfo();
+    static generalInfo *getGeneralInfo();
+    static generalInfo *getFakeGeneralInfo();
+
     pthread_t getTID();
     InverterDataExtractor();
     ~InverterDataExtractor();

@@ -3,15 +3,15 @@
 //
 
 #include "ServerInstance.h"
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <fcntl.h>
-#include <cerrno>
 #include "../inveterExtractor/InverterDataExtractor.h"
-#include "Responder.h"
 #include "RequestParser.h"
+#include "Responder.h"
+#include <arpa/inet.h>
+#include <cerrno>
+#include <fcntl.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <unistd.h>
 
 struct ThreadData
 {
@@ -19,7 +19,7 @@ struct ThreadData
     InverterDataExtractor *extractor;
 };
 
-ServerInstance::ServerInstance(const std::string &address, uint16_t port)
+ServerInstance::ServerInstance(const std::string &address, uint16_t port, ProgramOptions &options)
 {
     this->sockFD = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFD < 0) {
@@ -34,10 +34,12 @@ ServerInstance::ServerInstance(const std::string &address, uint16_t port)
     serverAddr->sin_addr.s_addr = inet_addr(address.c_str());
     serverAddr->sin_port = htons(port);
 
-    if (bind(this->sockFD, (struct sockaddr *) serverAddr, sizeof(sockaddr_in)) < 0) {
+    if (bind(this->sockFD, (struct sockaddr *) serverAddr, sizeof(sockaddr_in)) <
+            0) {
         Logger::log(true, "ServerInstance", "could not bind socket, exiting");
         exit(1);
     }
+    free(serverAddr);
 }
 int ServerInstance::start(bool *run, InverterDataExtractor &extractor)
 {
@@ -58,13 +60,16 @@ int ServerInstance::start(bool *run, InverterDataExtractor &extractor)
     size_t addrSize = sizeof(sockaddr_in);
 
     auto *clientAddr = (sockaddr_in *) calloc(1, sizeof(sockaddr_in));
-    // run is pointer shared between server thread and UI thread, if user wishes to stop the server, UI thread will change the value of run which will cause this loop to end
+    // run is pointer shared between server thread and UI thread, if user wishes
+    // to stop the server, UI thread will change the value of run which will cause
+    // this loop to end
     while (true) {
         if (!*run) {
             break;
         }
 
-        // this loop limits the number of concurrently processed requests, it will block until at least one thread ends
+        // this loop limits the number of concurrently processed requests, it will
+        // block until at least one thread ends
         while (runningThreads >= MAX_THREADS) {
             for (unsigned long threadID : threadIDs) {
                 int32_t *retVal;
@@ -74,7 +79,8 @@ int ServerInstance::start(bool *run, InverterDataExtractor &extractor)
             }
         }
         //        Logger::log(false, "Server Instance", "Before connection accept");
-        int childFD = accept(sockFD, (struct sockaddr *) clientAddr, (socklen_t *) &addrSize);
+        int childFD =
+                accept(sockFD, (struct sockaddr *) clientAddr, (socklen_t *) &addrSize);
 
         if (childFD < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
             continue;
