@@ -4,8 +4,8 @@
 
 #include "ServerInstance.h"
 #include "../inveterExtractor/InverterDataExtractor.h"
-#include "RequestParser.h"
-#include "Responder.h"
+#include "RequestsAndResponses/RequestParser.h"
+#include "RequestsAndResponses/ResponseManager.h"
 #include <arpa/inet.h>
 #include <cerrno>
 #include <fcntl.h>
@@ -13,14 +13,18 @@
 #include <pthread.h>
 #include <unistd.h>
 
+ProgramOptions ServerInstance::options;
+
 struct ThreadData
 {
     int sockFD;
     InverterDataExtractor *extractor;
 };
 
-ServerInstance::ServerInstance(const std::string &address, uint16_t port, ProgramOptions &options)
+ServerInstance::ServerInstance(const std::string &address, uint16_t port, ProgramOptions &opt)
 {
+    options = opt;
+
     this->sockFD = socket(AF_INET, SOCK_STREAM, 0);
     if (sockFD < 0) {
         Logger::log(true, "ServerInstance", "socket creation, exiting");
@@ -116,7 +120,7 @@ void *ServerInstance::startProcessing(void *arg)
 {
     auto data = (ThreadData *) arg;
     auto sockFD = data->sockFD;
-    Responder responder = Responder();
+    ResponseManager responder = ResponseManager(options);
 
     size_t maxRequestSize = 1u << 20u;
     auto *buffer = (int8_t *) calloc(maxRequestSize, sizeof(int8_t));

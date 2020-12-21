@@ -3,11 +3,11 @@
 //
 
 #include "RequestParser.h"
-#include "../inverterComm.h"
+#include "../../inverterComm.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "../inveterExtractor/InverterDataExtractor.h"
+#include "../../inveterExtractor/InverterDataExtractor.h"
 
 Request RequestParser::parseRequest(int8_t *buffer, size_t buffSize)
 {
@@ -36,7 +36,12 @@ Request RequestParser::parseRequest(int8_t *buffer)
     request = request.erase(0, pos + delimiter.length());
     pos = request.find(delimiter);
     token = request.substr(0, pos);
-    req.path = token;
+    req.path = token.erase(0, 1);
+
+    if (req.path.empty()) {
+        req.path = "index.html";
+    }
+
     req.payload = "";
 
     return req;

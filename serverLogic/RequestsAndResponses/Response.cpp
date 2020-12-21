@@ -6,8 +6,15 @@
 #include <sstream>
 #include <exception>
 
-Response::Response(HTTPCodes code, std::string MIMEType, std::string optionalParams, std::string body)
+Response::Response(HTTPCodes code, std::string &type, std::string &optionalParams, std::string &body)
 {
+    MIMETypes["html"] = "text/html";
+    MIMETypes["css"] = "text/css";
+    MIMETypes["jpg"] = "images/jpg";
+    MIMETypes["png"] = "images/png";
+    MIMETypes["js"] = "text/javascript";
+    MIMETypes["ico"] = "image/png";
+
     std::stringstream response;
     switch (code) {
     case HTTP200:
@@ -24,7 +31,7 @@ Response::Response(HTTPCodes code, std::string MIMEType, std::string optionalPar
         break;
     }
 
-    MIMETypeString = "content-type: " + MIMEType + "; charset=utf-8\n";
+    MIMETypeString = "content-type: " + MIMETypes[type] + "; charset=utf-8\n";
     optionalString = optionalParams + "\n\n";
     bodyString = body + "\n";
 
@@ -48,8 +55,14 @@ void Response::changeBody(std::string newBody)
 }
 
 //todo finish this constructor
-Response::Response(HTTPCodes code, std::string MIMEType, std::string optionalParams, char *body, size_t bodyLen)
+Response::Response(HTTPCodes code, std::string &type, std::string &optionalParams, char *body, size_t bodyLen)
 {
+    MIMETypes["html"] = "text/html";
+    MIMETypes["css"] = "text/css";
+    MIMETypes["jpg"] = "images/jpg";
+    MIMETypes["png"] = "images/jpg";
+    MIMETypes["js"] = "text/javascript";
+
     std::stringstream response;
     switch (code) {
     case HTTP200:
@@ -69,7 +82,7 @@ Response::Response(HTTPCodes code, std::string MIMEType, std::string optionalPar
         codeString = response.str();
     }
 
-    MIMETypeString = "content-type: " + MIMEType + "; charset=utf-8\n";
+    MIMETypeString = "content-type: " + MIMETypes[type] + "; charset=utf-8\n";
     optionalString = optionalParams + "\n\n";
     bodyString = std::string(body) + "\n";
 

@@ -2,13 +2,14 @@
 // Created by Michal on 15-Dec-20.
 //
 
-#ifndef SOLARSERVER_RESPONDER_H
-#define SOLARSERVER_RESPONDER_H
+#ifndef SOLARSERVER_RESPONSEMANAGER_H
+#define SOLARSERVER_RESPONSEMANAGER_H
 
 #include <string>
 #include "RequestParser.h"
+#include "../ServerInstance.h"
 
-class Responder
+class ResponseManager
 {
   private:
     std::string httpOK();
@@ -16,9 +17,11 @@ class Responder
     std::string GETRequest(Request &request);
     std::string POSTRequest(Request &request);
     void addRow(std::string &fileSoFar, size_t cellN, std::string *rowElement);
+    ProgramOptions options;
 
   public:
+    explicit ResponseManager(ProgramOptions &opt);
     std::string respond(Request &request);
 };
 
-#endif //SOLARSERVER_RESPONDER_H
+#endif //SOLARSERVER_RESPONSEMANAGER_H

@@ -20,9 +20,10 @@ class ServerInstance
 {
   private:
     int sockFD;
+    static ProgramOptions options;
 
   public:
-    ServerInstance(const std::string &address, uint16_t port);
+    ServerInstance(const std::string &address, uint16_t port, ProgramOptions &options);
     int32_t start(bool *run, InverterDataExtractor &extractor);
     static void *startProcessing(void *sockFD);
     ~ServerInstance();

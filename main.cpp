@@ -1,9 +1,10 @@
 #include "inverterComm.h"
 #include "serverLogic/ServerInstance.h"
 #include "UI/UserInterface.h"
-#include "serverLogic/RequestParser.h"
+#include "serverLogic/RequestsAndResponses/RequestParser.h"
 #include "inveterExtractor/InverterDataExtractor.h"
 #include "File.h"
+#include <map>
 
 void loadArgs(ProgramOptions *options, int argc, char **argv)
 {
@@ -16,12 +17,15 @@ void loadArgs(ProgramOptions *options, int argc, char **argv)
     options->serverFilesPath = std::string(argv[1]);
 }
 
-int main(int argc, char **args)
+int main(int argc, char **argv)
 {
     InverterDataExtractor extractor = InverterDataExtractor();
     UserInterface interface = UserInterface(extractor.getTID());
 
-    ServerInstance instance = ServerInstance("192.168.1.20", 8888);
+    ProgramOptions options;
+    loadArgs(&options, argc, argv);
+
+    ServerInstance instance = ServerInstance("192.168.1.20", 8888, options);
 
     instance.start(UserInterface::getRunPointer(), extractor);
 
