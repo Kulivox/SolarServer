@@ -39,7 +39,7 @@ void *InverterDataExtractor::extractAndSetData(void *arg)
 
     while (true) {
         //        Logger::log(false, "DataExtraction", "starting extraction...");
-//        getState(data->context, InverterDataExtractor::info);
+        getState(data->context, InverterDataExtractor::info);
         //        Logger::log(false, "DataExtraction", "extraction complete");
 
         DataStorage::storeData(InverterDataExtractor::info);
@@ -66,7 +66,7 @@ void *InverterDataExtractor::fakeExtractAndSetData(void *arg)
 
     while (true) {
         //        Logger::log(false, "DataExtraction", "starting extraction...");
-        //        getState(data->context, InverterDataExtractor::info);
+//                getState(data->context, InverterDataExtractor::info);
         //        Logger::log(false, "DataExtraction", "extraction complete");
 
         DataStorage::storeData(InverterDataExtractor::info);
@@ -82,14 +82,14 @@ void *InverterDataExtractor::fakeExtractAndSetData(void *arg)
 
 InverterDataExtractor::InverterDataExtractor()
 {
-//    inverterCommContext *context = createContext("/dev/ttyUSB0");
+    inverterCommContext *context = createContext("/dev/ttyUSB0");
     info = (generalInfo *) calloc(1, sizeof(generalInfo));
 
     fakeInfo = (generalInfo *) calloc(1, sizeof(generalInfo));
 
     tid = 0;
     auto data = (DataForThread *) calloc(1, sizeof(DataForThread));
-//    data->context = context;
+    data->context = context;
 
     int result = pthread_create(&tid, nullptr, InverterDataExtractor::extractAndSetData, (void *) data);
     if (result != 0) {
