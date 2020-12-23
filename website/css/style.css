@@ -2,6 +2,8 @@ table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
     width: 50%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 td, th {
@@ -12,4 +14,9 @@ td, th {
 
 tr:nth-child(even) {
     background-color: #dddddd;
+}
+
+canvas {
+    width: 50%;
+    height: 50%;
 }

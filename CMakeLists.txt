@@ -12,7 +12,8 @@ add_executable(SolarServer main.cpp serverLogic/ServerInstance.cpp Logger/Logger
         File.cpp File.h tests/tests.cpp tests/RequestParserTests.cpp tests/RequestParserTests.h
         serverLogic/RequestsAndResponses/PageResponses/FileBearingResponseBuilder.cpp
         serverLogic/RequestsAndResponses/QueryResponses/MainPage/MainPageBuilder.cpp
-        serverLogic/RequestsAndResponses/QueryResponses/QueryResponseBuilder.cpp)
+        serverLogic/RequestsAndResponses/QueryResponses/QueryResponseBuilder.cpp
+        serverLogic/RequestsAndResponses/QueryResponses/MainPageChart/MainPageChartDataBuilder.cpp)
 
 
 target_link_libraries(SolarServer SolarConverterConnectionLib -pthread)

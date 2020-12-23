@@ -66,7 +66,7 @@ void *InverterDataExtractor::fakeExtractAndSetData(void *arg)
 
     while (true) {
         //        Logger::log(false, "DataExtraction", "starting extraction...");
-//                getState(data->context, InverterDataExtractor::info);
+        //        getState(data->context, InverterDataExtractor::info);
         //        Logger::log(false, "DataExtraction", "extraction complete");
 
         DataStorage::storeData(InverterDataExtractor::info);

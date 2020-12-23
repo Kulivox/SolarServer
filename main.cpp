@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     ProgramOptions options;
     loadArgs(&options, argc, argv);
 
-    ServerInstance instance = ServerInstance("127.0.0.1", 8888, options);
+    ServerInstance instance = ServerInstance("192.168.1.20", 8888, options);
 
     instance.start(UserInterface::getRunPointer(), extractor);
 

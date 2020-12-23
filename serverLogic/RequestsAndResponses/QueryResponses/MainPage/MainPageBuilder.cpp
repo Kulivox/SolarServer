@@ -7,7 +7,7 @@
 #include <sstream>
 #include <cstring>
 
-const char *MainPageBuilder::mainPage(size_t *len)
+char *MainPageBuilder::mainPage(size_t *len)
 {
     auto info = InverterDataExtractor::getGeneralInfo();
 

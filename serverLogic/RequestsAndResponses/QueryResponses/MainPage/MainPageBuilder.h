@@ -11,8 +11,7 @@ class MainPageBuilder
     static void addRow(std::string &fileSoFar, size_t cellN, std::string *rowElement);
 
   public:
-    static const char *mainPage(unsigned int *len);
-    static const char *mainPage(size_t *len);
+    static char *mainPage(size_t *len);
 };
 
 #endif //SOLARSERVER_MAINPAGEBUILDER_H
