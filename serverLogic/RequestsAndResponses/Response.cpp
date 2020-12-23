@@ -74,8 +74,8 @@ Response::Response(HTTPCodes code, std::string &type, std::string &optionalParam
         codeString = responseStringStream.str();
     }
 
-    MIMETypeString = "content-type: " + MIMETypes[type];
-    optionalString = optionalParams + "\n\n";
+    MIMETypeString = "Content-Type: " + MIMETypes[type];
+    optionalString = optionalParams + "\n";
 
     responseStringStream << MIMETypeString << optionalString;
     size_t streamLen = codeString.length() + MIMETypeString.length() + optionalString.length();

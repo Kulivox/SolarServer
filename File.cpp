@@ -69,3 +69,8 @@ std::string File::getFileAsString()
 {
     return std::string(contents);
 }
+
+File::~File()
+{
+    delete[] contents;
+}

@@ -28,6 +28,7 @@ class File
     size_t getFileSize();
     std::string getFileType();
     std::string getFileName();
+    ~File();
 };
 
 #endif //SOLARSERVER_FILE_H

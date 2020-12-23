@@ -151,7 +151,7 @@ void *ServerInstance::startProcessing(void *arg)
         return (void *) 1;
     }
 
-    delete (response);
+    delete[] response;
     delete data;
     close(sockFD);
     return (void *) 0;
