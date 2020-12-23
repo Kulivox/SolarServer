@@ -1,10 +1,10 @@
 #include "inverterComm.h"
 #include "serverLogic/ServerInstance.h"
 #include "UI/UserInterface.h"
-#include "serverLogic/RequestsAndResponses/RequestParser.h"
-#include "inveterExtractor/InverterDataExtractor.h"
 #include "File.h"
 #include <map>
+#include "tests/tests.h"
+#include "Options/ProgramOptions.h"
 
 void loadArgs(ProgramOptions *options, int argc, char **argv)
 {
@@ -19,13 +19,15 @@ void loadArgs(ProgramOptions *options, int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+    //    runTests();
+
     InverterDataExtractor extractor = InverterDataExtractor();
     UserInterface interface = UserInterface(extractor.getTID());
 
     ProgramOptions options;
     loadArgs(&options, argc, argv);
 
-    ServerInstance instance = ServerInstance("192.168.1.20", 8888, options);
+    ServerInstance instance = ServerInstance("192.168.1.20", 9998, options);
 
     instance.start(UserInterface::getRunPointer(), extractor);
 

@@ -18,7 +18,7 @@ void DataStorage::storeData(generalInfo *info)
     time_t currentTime;
     currentTime = time(nullptr);
 
-    stream << currentTime << info->gridVoltage << "," << info->gridFrequency << "," << info->acOutput << ","
+    stream << currentTime << "," << info->gridVoltage << "," << info->gridFrequency << "," << info->acOutput << ","
            << info->acOutFreq << "," << info->acOutputApparentPower << "," << info->acOutputActivePower << ","
            << info->outputLoadPercent << "," << info->busVoltage << "," << info->batteryChargingCurrent << ","
            << info->batteryCapacity << "," << info->heatSinkTemp << "," << info->pvInputCurrentBattery << ","

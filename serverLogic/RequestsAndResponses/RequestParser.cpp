@@ -5,9 +5,7 @@
 #include "RequestParser.h"
 #include "../../inverterComm.h"
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include "../../inveterExtractor/InverterDataExtractor.h"
+#include <regex>
 
 Request RequestParser::parseRequest(int8_t *buffer, size_t buffSize)
 {
@@ -24,25 +22,30 @@ Request RequestParser::parseRequest(int8_t *buffer, size_t buffSize)
     //           "Content-Type: text/html; charset=UTF-8\n\n" + stream.str();
     return Request{};
 }
+
 Request RequestParser::parseRequest(int8_t *buffer)
 {
-    std::string request((char *) buffer);
-    std::string delimiter = " ";
-    Request req;
+    const std::string requestString((char *) buffer);
+    //    std::cout << requestString;
+    std::regex requestRegex(R"(([A-Z]+) (\S+)\?(\S+))");
+    std::smatch match;
+    Request requestStruct = { std::string(), std::string(), std::string(), nullptr, 0 };
 
-    size_t pos = request.find(delimiter);
-    std::string token = request.substr(0, pos);
-    req.type = token;
-    request = request.erase(0, pos + delimiter.length());
-    pos = request.find(delimiter);
-    token = request.substr(0, pos);
-    req.path = token.erase(0, 1);
+    if (std::regex_search(requestString.begin(), requestString.end(), match, requestRegex)) {
+        requestStruct.type = match[1];
+        requestStruct.path = match[2];
+        requestStruct.query = match[3];
 
-    if (req.path.empty()) {
-        req.path = "index.html";
+        return requestStruct;
     }
 
-    req.payload = "";
+    requestRegex = std::regex(R"(([A-Z]+) (\S+))");
+    if (std::regex_search(requestString.begin(), requestString.end(), match, requestRegex)) {
+        requestStruct.type = match[1];
+        requestStruct.path = match[2];
 
-    return req;
+        return requestStruct;
+    }
+
+    return requestStruct;
 }

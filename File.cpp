@@ -29,6 +29,7 @@ File::File(std::string path)
     file.seekg(0);
     name = path;
     type = extractTypeFromFileName();
+
     if (type.empty()) {
         throw FileException();
     }

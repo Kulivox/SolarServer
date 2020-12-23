@@ -5,12 +5,13 @@
 #include "ServerInstance.h"
 #include "../inveterExtractor/InverterDataExtractor.h"
 #include "RequestsAndResponses/RequestParser.h"
-#include "RequestsAndResponses/ResponseManager.h"
+#include "RequestsAndResponses/ResponseBufferBuilder.h"
 #include <arpa/inet.h>
 #include <cerrno>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <cstring>
 #include <unistd.h>
 
 ProgramOptions ServerInstance::options;
@@ -33,6 +34,9 @@ ServerInstance::ServerInstance(const std::string &address, uint16_t port, Progra
     int enable = 1;
     setsockopt(this->sockFD, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int));
 
+    timeval val = { 0, 200 };
+    setsockopt(this->sockFD, SOL_SOCKET, SO_RCVTIMEO, &val, sizeof(timeval));
+
     auto *serverAddr = (sockaddr_in *) calloc(1, sizeof(sockaddr_in));
     serverAddr->sin_family = AF_INET;
     serverAddr->sin_addr.s_addr = inet_addr(address.c_str());
@@ -52,11 +56,11 @@ int ServerInstance::start(bool *run, InverterDataExtractor &extractor)
         exit(1);
     }
 
-    int status = fcntl(this->sockFD, F_SETFL, fcntl(this->sockFD, F_GETFL, 0) | O_NONBLOCK);
-    if (status < 0) {
-        Logger::log(true, "ServerInstance", "fcntl error");
-        exit(1);
-    }
+    //    int status = fcntl(this->sockFD, F_SETFL, fcntl(this->sockFD, F_GETFL, 0) | O_NONBLOCK);
+    //    if (status < 0) {
+    //        Logger::log(true, "ServerInstance", "fcntl error");
+    //        exit(1);
+    //    }
 
     uint16_t runningThreads = 0;
     const uint16_t MAX_THREADS = 5;
@@ -86,7 +90,7 @@ int ServerInstance::start(bool *run, InverterDataExtractor &extractor)
         int childFD =
                 accept(sockFD, (struct sockaddr *) clientAddr, (socklen_t *) &addrSize);
 
-        if (childFD < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+        if (childFD < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINPROGRESS)) {
             continue;
         }
         //        Logger::log(false, "Server Instance", "Connection accepted");
@@ -120,7 +124,7 @@ void *ServerInstance::startProcessing(void *arg)
 {
     auto data = (ThreadData *) arg;
     auto sockFD = data->sockFD;
-    ResponseManager responder = ResponseManager(options);
+    ResponseBufferBuilder responder = ResponseBufferBuilder(options);
 
     size_t maxRequestSize = 1u << 20u;
     auto *buffer = (int8_t *) calloc(maxRequestSize, sizeof(int8_t));
@@ -135,15 +139,19 @@ void *ServerInstance::startProcessing(void *arg)
     //    printf("BUFFER: %s\n", buffer);
 
     Request req = RequestParser::parseRequest(buffer);
-    std::string response = responder.respond(req);
+    size_t responseLen = 0;
+    char *response = responder.createResponseBuffer(req, &responseLen);
     free(buffer);
 
-    if (write(sockFD, response.c_str(), response.length()) != response.length()) {
+    //    std::cout << response;
+
+    if (write(sockFD, response, responseLen) != responseLen) {
         Logger::log(false, "ServerInstance: Processing", "could not respond, connection closed at clients side");
         close((int32_t) sockFD);
         return (void *) 1;
     }
 
+    delete (response);
     delete data;
     close(sockFD);
     return (void *) 0;

@@ -23,6 +23,6 @@ try:
 
     print("TEST OK")
 
-except socket.timeout:
+except:
     timeoutTime = datetime.datetime.now()
-    print(f"TEST FAILED: Server timed out at {timeoutTime}")
+    print("System failed at: " + str(timeoutTime))

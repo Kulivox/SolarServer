@@ -2,90 +2,132 @@
 // Created by Michal on 16-Dec-20.
 //
 
-#include "Response.h"
-#include <sstream>
 #include <exception>
+#include "Response.h"
+#include <cstring>
 
 Response::Response(HTTPCodes code, std::string &type, std::string &optionalParams, std::string &body)
 {
-    MIMETypes["html"] = "text/html";
-    MIMETypes["css"] = "text/css";
+    std::stringstream responseStringStream;
+    MIMETypes["html"] = "text/html; charset=utf-8\n";
+    MIMETypes["css"] = "text/css; charset=utf-8\n";
     MIMETypes["jpg"] = "images/jpg";
     MIMETypes["png"] = "images/png";
-    MIMETypes["js"] = "text/javascript";
-    MIMETypes["ico"] = "image/png";
+    MIMETypes["ico"] = "images/png";
+    MIMETypes["js"] = "text/javascript; charset=utf-8\n";
 
-    std::stringstream response;
     switch (code) {
     case HTTP200:
-        response << "HTTP/2 200 OK\n";
-        codeString = response.str();
+        responseStringStream << "HTTP/2 200 OK\n";
+        codeString = responseStringStream.str();
         break;
     case HTTP500:
-        response << "HTTP/2 500 Internal Server Error\n";
-        codeString = response.str();
+        responseStringStream << "HTTP/2 500 Internal Server Error\n";
+        codeString = responseStringStream.str();
         break;
     case HTTP404:
-        response << "HTTP/2 404 Not Found\n";
-        codeString = response.str();
+        responseStringStream << "HTTP/2 404 Not Found\n";
+        codeString = responseStringStream.str();
         break;
+    default:
+        responseStringStream << "HTTP/2 404 Not Found\n";
+        codeString = responseStringStream.str();
     }
 
-    MIMETypeString = "content-type: " + MIMETypes[type] + "; charset=utf-8\n";
+    MIMETypeString = "content-type: " + MIMETypes[type];
     optionalString = optionalParams + "\n\n";
     bodyString = body + "\n";
 
-    response << MIMETypeString << optionalString << bodyString;
-    responseString = response.str();
+    responseStringStream << MIMETypeString << optionalString << bodyString;
+    responseString = responseStringStream.str();
     responseLength = responseString.length();
-    responseBytes = responseString.c_str();
+    response = new char[responseLength];
+    memcpy(response, responseString.c_str(), responseLength);
 }
+
+Response::Response(HTTPCodes code, std::string &type, std::string &optionalParams, const char *body, size_t bodyLen)
+{
+    MIMETypes["html"] = "text/html; charset=utf-8\n";
+    MIMETypes["css"] = "text/css; charset=utf-8\n";
+    MIMETypes["jpg"] = "images/jpg";
+    MIMETypes["png"] = "images/png";
+    MIMETypes["ico"] = "images/png";
+    MIMETypes["js"] = "text/javascript; charset=utf-8\n";
+
+    std::stringstream responseStringStream;
+
+    switch (code) {
+    case HTTP200:
+        responseStringStream << "HTTP/2 200 OK\n";
+        codeString = responseStringStream.str();
+        break;
+    case HTTP500:
+        responseStringStream << "HTTP/2 500 Internal Server Error\n";
+        codeString = responseStringStream.str();
+        break;
+    case HTTP404:
+        responseStringStream << "HTTP/2 404 Not Found\n";
+        codeString = responseStringStream.str();
+        break;
+    default:
+        responseStringStream << "HTTP/2 404 Not Found\n";
+        codeString = responseStringStream.str();
+    }
+
+    MIMETypeString = "content-type: " + MIMETypes[type];
+    optionalString = optionalParams + "\n\n";
+
+    responseStringStream << MIMETypeString << optionalString;
+    size_t streamLen = codeString.length() + MIMETypeString.length() + optionalString.length();
+    responseLength = streamLen + bodyLen;
+
+    response = new char[responseLength + 1];
+    memcpy(response, responseStringStream.str().c_str(), streamLen);
+
+    char *tempResponsePointer = response + streamLen;
+    memcpy(tempResponsePointer, body, bodyLen);
+    response[responseLength] = '\0';
+    responseString = response;
+}
+
 std::string Response::getStringResponse()
 {
     return responseString;
 }
-void Response::changeBody(std::string newBody)
+
+char *Response::getResponseBuffer()
 {
-    bodyString = newBody;
-    std::stringstream response;
-    response << codeString << MIMETypeString << optionalString << "\n"
-             << newBody;
-    responseString = response.str();
-    responseBytes = responseString.c_str();
+    return response;
 }
 
-//todo finish this constructor
-Response::Response(HTTPCodes code, std::string &type, std::string &optionalParams, char *body, size_t bodyLen)
+void Response::changeBody(std::string newBody)
 {
-    MIMETypes["html"] = "text/html";
-    MIMETypes["css"] = "text/css";
-    MIMETypes["jpg"] = "images/jpg";
-    MIMETypes["png"] = "images/jpg";
-    MIMETypes["js"] = "text/javascript";
+    std::stringstream responseStringStream;
+    bodyString = newBody;
+    responseStringStream << codeString << MIMETypeString << optionalString << "\n"
+                         << newBody;
+    responseString = responseStringStream.str();
+}
 
-    std::stringstream response;
-    switch (code) {
-    case HTTP200:
-        response << "HTTP/2 200 OK\n";
-        codeString = response.str();
-        break;
-    case HTTP500:
-        response << "HTTP/2 500 Internal Server Error\n";
-        codeString = response.str();
-        break;
-    case HTTP404:
-        response << "HTTP/2 404 Not Found\n";
-        codeString = response.str();
-        break;
-    default:
-        response << "HTTP/2 404 Not Found\n";
-        codeString = response.str();
-    }
+void Response::changeBody(const char *newBody, size_t len)
+{
+    std::stringstream responseStringStream;
+    responseStringStream << codeString << MIMETypeString << optionalString;
 
-    MIMETypeString = "content-type: " + MIMETypes[type] + "; charset=utf-8\n";
-    optionalString = optionalParams + "\n\n";
-    bodyString = std::string(body) + "\n";
+    size_t streamLen = codeString.length() + MIMETypeString.length() + optionalString.length();
+    responseLength = streamLen + len;
 
-    response << MIMETypeString << optionalString << bodyString;
-    responseString = response.str();
+    delete response;
+    response = new char[responseLength + 1];
+    memcpy(response, responseStringStream.str().c_str(), streamLen);
+
+    char *tempResponsePointer = response + streamLen;
+    memcpy(tempResponsePointer, newBody, len);
+
+    response[responseLength] = '\0';
+    responseString = response;
+}
+size_t Response::getResponseLength()
+{
+    return responseLength;
 }

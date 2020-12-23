@@ -10,11 +10,7 @@
 #include "../Logger/Logger.h"
 #include <cstdint>
 #include "../inveterExtractor/InverterDataExtractor.h"
-
-struct ProgramOptions
-{
-    std::string serverFilesPath;
-};
+#include "../Options/ProgramOptions.h"
 
 class ServerInstance
 {
